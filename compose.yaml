@@ -1,0 +1,31 @@
+services:
+  db: &mysql
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: fridegeshare
+      MYSQL_USER: fridegeshare
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in your terminal}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    ports:
+      - "127.0.0.1:${DB_PORT:-3306}:3306"
+    volumes:
+      - database:/var/lib/mysql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_PASSWORD\" mysql --host=127.0.0.1 --user=\"$$MYSQL_USER\" --database=\"$$MYSQL_DATABASE\" --execute='SELECT 1 FROM users LIMIT 1'"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  db-test:
+    <<: *mysql
+    profiles: ["test"]
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - test_database:/var/lib/mysql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+
+volumes:
+  database:
+  test_database:
