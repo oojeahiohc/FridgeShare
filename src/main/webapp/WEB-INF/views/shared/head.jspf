@@ -1,0 +1,10 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf-token" content="<c:out value='${_csrf.token}'/>">
+<meta name="csrf-header" content="<c:out value='${_csrf.headerName}'/>">
+<style>
+    body {
+        max-width: 480px;
+    }
+</style>
+<script defer src="<c:url value='/js/api.js'/>"></script>

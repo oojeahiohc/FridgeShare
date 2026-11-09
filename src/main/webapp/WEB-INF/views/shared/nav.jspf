@@ -1,0 +1,13 @@
+<!-- 공통 메뉴와 로그아웃 폼 -->
+<header>
+    <nav aria-label="주 메뉴">
+        <a href="<c:url value='/posts'/>">냉장고 구조대</a>
+        <a href="<c:url value='/posts'/>">게시글 목록</a>
+        <a href="<c:url value='/mypage'/>">마이페이지</a>
+        <%-- POST 로그아웃 요청의 CSRF 토큰 전달 --%>
+        <form action="<c:url value='/logout'/>" method="post">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+            <button type="submit">로그아웃</button>
+        </form>
+    </nav>
+</header>
