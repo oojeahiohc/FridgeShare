@@ -1,0 +1,28 @@
+spring:
+  mvc:
+    view:
+      prefix: /WEB-INF/views/
+      suffix: .jsp
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/fridegeshare?connectionTimeZone=%2B09:00&forceConnectionTimeZoneToSession=true}
+    username: ${DB_USER:fridegeshare}
+    password: ${DB_PASSWORD:}
+  sql:
+    init:
+      mode: never
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
