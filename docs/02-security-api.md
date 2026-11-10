@@ -1,4 +1,4 @@
-### 파일 생성
+### 공통 보안 설정과 API 요청 처리
 - [`SessionUser.java`](../src/main/java/com/fridegeshare/common/SessionUser.java)
     - 로그인한 회원의 정보를 담는 클래스
     - 로그인 처리 코드가 DB에서 회원을 조회하면, 그 결과로 SessionUser를 만들어 Spring Security에 전달

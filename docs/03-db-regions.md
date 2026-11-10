@@ -1,4 +1,4 @@
-### 공통 데이터 생성
+### MySQL 초기 설정과 행정동 데이터 준비
 - [`compose.yaml`](../compose.yaml) Docker 컨테이너를 어떻게 실행할지 정하는 Docker Compose 설정 파일
     - 새 Docker 볼륨으로 MySQL 최초 실행 시 MYSQL_DATABASE와 MYSQL_USER 설정에 따라 DB와 접속 계정 자동 생성
     - schema.sql 실행을 통한 공통 테이블 5개 생성

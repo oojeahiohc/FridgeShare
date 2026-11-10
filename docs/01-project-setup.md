@@ -1,4 +1,4 @@
-### 팀 프로젝트 최초 구성
+### Spring Boot 프로젝트 초기 구성과 빌드
 - Spring Initializr을 사용하지 않고 빈 폴더에서 직접 구성한다.
 - 사전 준비: JDK 17, Git, VSCode java 확장, Docker Desktop
 1. VSCode에서 빈 FridegeShare 폴더 열기
