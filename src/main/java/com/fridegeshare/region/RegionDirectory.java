@@ -61,6 +61,19 @@ public class RegionDirectory {
         return region;
     }
 
+    // 행정동 코드로 지역 정보를 찾아 시·도와 시·군·구가 모두 같은지 확인한다.
+    public boolean sameDistrict(String firstCode, String secondCode) {
+        Region first = byCode.get(firstCode);
+        Region second = byCode.get(secondCode);
+        return first != null && second != null
+                && first.province().equals(second.province())
+                && first.district().equals(second.district());
+    }
+
+    public List<String> districtCodes(String code) {
+        return byCode.keySet().stream().filter(candidate -> sameDistrict(code, candidate)).toList();
+    }
+
     public String label(String code) {
         Region region = byCode.get(code);
         return region == null ? code : region.label();

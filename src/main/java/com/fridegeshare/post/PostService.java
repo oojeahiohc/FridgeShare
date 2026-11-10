@@ -34,7 +34,9 @@ public class PostService {
 
     public List<Post> list(SessionUser user, String keyword) {
         String search = keyword == null ? null : Inputs.text(keyword, "검색어", 1, 100);
-        return posts.list(user.neighborhoodCode(), search).stream().map(this::toPost).toList();
+        var neighborhoods = regions.districtCodes(user.neighborhoodCode());
+        if (neighborhoods.isEmpty()) return List.of();
+        return posts.list(neighborhoods, search).stream().map(this::toPost).toList();
     }
 
     public List<Mine> mine(SessionUser user) {
@@ -44,13 +46,22 @@ public class PostService {
 
     // 조회자 역할 판정 및 참여자에게만 예약, 채팅 ID 공개
     public Detail detail(SessionUser user, long id) {
-        var row = require(id);
+        var row = requireInDistrict(user, id);
         String role = "OTHER";
         if (row.authorId() == user.id()) role = "OWNER";
         else if (row.applicantId() != null && row.applicantId() == user.id()) role = "APPLICANT";
         boolean participant = !role.equals("OTHER");
         return new Detail(toPost(row), role,
             participant ? row.reservationId() : null, participant ? row.chatRoomId() : null);
+    }
+
+    private PostMapper.PostRow requireInDistrict(SessionUser user, long id) {
+        var row = require(id);
+        // 조회 범위 밖의 글은 주소로 접근해도 존재 여부를 공개하지 않는다.
+        if (!regions.sameDistrict(user.neighborhoodCode(), row.neighborhoodCode())) {
+            throw ApiException.missing();
+        }
+        return row;
     }
 
     // LAST_INSERT_ID()가 INSERT와 같은 DB 연결을 사용하도록 트랜잭션으로 묶는다.

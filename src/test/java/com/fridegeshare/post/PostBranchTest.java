@@ -37,6 +37,7 @@ class PostBranchTest {
     void neighborhoodAndOwnerRulesApplyToCrud() throws Exception {
         var owner = member("1111051500");
         var outsider = member("1111053000");
+        var otherDistrict = member("1114052000");
         String form = json.writeValueAsString(
             new PostService.PostForm("당근 나눔", "당근", "3개", Inputs.today(), "상태 좋음"));
 
@@ -45,12 +46,18 @@ class PostBranchTest {
             .andExpect(status().isCreated()).andReturn();
         long id = json.readTree(result.getResponse().getContentAsString()).at("/data/id").asLong();
 
-        mvc.perform(get("/api/posts").with(user(outsider)))
+        mvc.perform(get("/api/posts").with(user(otherDistrict)))
             .andExpect(status().isOk()).andExpect(jsonPath("$.data").isEmpty());
-        mvc.perform(get("/api/posts").param("keyword", "당근").with(user(owner)))
+        mvc.perform(get("/api/posts").param("keyword", "당근").with(user(outsider)))
             .andExpect(jsonPath("$.data[0].id").value(id));
         mvc.perform(get("/api/posts/{id}", id).with(user(outsider)))
             .andExpect(status().isOk()).andExpect(jsonPath("$.data.viewerRole").value("OTHER"));
+        mvc.perform(get("/posts/{id}", id).with(user(outsider)))
+            .andExpect(status().isOk());
+        mvc.perform(get("/api/posts/{id}", id).with(user(otherDistrict)))
+            .andExpect(status().isNotFound());
+        mvc.perform(get("/posts/{id}", id).with(user(otherDistrict)))
+            .andExpect(status().isNotFound());
         mvc.perform(put("/api/posts/{id}", id).with(user(outsider)).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content(form))
             .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("NOT_POST_OWNER"));
