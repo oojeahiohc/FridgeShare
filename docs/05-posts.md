@@ -8,7 +8,7 @@
 - [`list.jsp`](../src/main/webapp/WEB-INF/views/posts/list.jsp) 동네 게시글 목록과 검색 화면
 - [`form.jsp`](../src/main/webapp/WEB-INF/views/posts/form.jsp) 등록, 수정 공용 폼
 - [`detail.jsp`](../src/main/webapp/WEB-INF/views/posts/detail.jsp) 상세 데이터와 수정, 삭제 버튼을 서버에서 렌더링
-- [`post-list.js`](../src/main/resources/static/js/post-list.js) 검색 요청과 목록 갱신
+- [`post-list.js`](../src/main/resources/static/js/post-list.js) 목록, 검색 요청과 페이지 이동
 - [`post-form.js`](../src/main/resources/static/js/post-form.js) 등록, 수정 요청과 폼 처리
 - [`post-detail.js`](../src/main/resources/static/js/post-detail.js) 삭제 요청과 결과 처리
 ---
@@ -16,10 +16,10 @@
 ```
 GET /posts → GET /api/posts
 → PostPageController가 list.jsp를 표시하고 post-list.js가 목록, 검색을 요청
-→ PostApiController가 로그인 회원과 검색어를 PostService.list()에 전달
+→ PostApiController가 로그인 회원, 검색어, 페이지 번호(기본값 1)를 PostService.list()에 전달
 → PostService가 RegionDirectory에서 같은 시·도 및 시·군·구의 행정동 코드 목록을 가져옴
-→ PostMapper가 해당 지역의 미삭제 글을 제목 또는 식재료명으로 검색
-→ post-list.js가 JSON 응답으로 목록을 갱신
+→ PostMapper가 해당 지역의 미삭제 글을 제목 또는 식재료명으로 검색하고 전체 건수와 페이지당 10건을 조회
+→ post-list.js가 JSON 응답의 data.posts와 페이지 정보로 목록과 이전·다음 버튼을 갱신
 
 GET /posts/{postId}
 → PostPageController가 PostService.detail()을 호출하고 PostMapper가 미삭제 글을 조회
@@ -49,4 +49,4 @@ GET /api/me/posts
 → PostMapper가 회원 ID로 미삭제 글을 조회하고 PostApiController가 JSON으로 반환
 ```
 ---
-- [`PostBranchTest.java`](../src/test/java/com/fridegeshare/post/PostBranchTest.java) 같은 동네 검색, 시·군·구별 상세 접근, 수정 권한 및 논리 삭제 검증
+- [`PostBranchTest.java`](../src/test/java/com/fridegeshare/post/PostBranchTest.java) 검색, 페이지네이션, 시·군·구별 상세 접근, 수정 권한 및 논리 삭제 검증

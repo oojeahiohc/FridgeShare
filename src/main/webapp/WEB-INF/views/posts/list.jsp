@@ -23,6 +23,11 @@
         <thead><tr><th>제목</th><th>식재료명</th><th>소비기한</th><th>상태</th></tr></thead>
         <tbody id="items"></tbody>
     </table>
+    <p id="page-status" role="status"></p>
+    <nav aria-label="게시글 페이지 이동">
+        <button type="button" id="previous" disabled>이전</button>
+        <button type="button" id="next" disabled>다음</button>
+    </nav>
 </main>
 </body>
 </html>

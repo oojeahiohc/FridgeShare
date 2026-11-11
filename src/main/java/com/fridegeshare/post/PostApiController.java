@@ -2,6 +2,7 @@ package com.fridegeshare.post;
 
 import java.util.Map;
 
+import com.fridegeshare.common.ApiException;
 import com.fridegeshare.common.SessionUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,8 +23,16 @@ class PostApiController {
     PostApiController(PostService posts) { this.posts = posts; }
 
     @GetMapping("/api/posts")
-    Map<String, Object> list(@AuthenticationPrincipal SessionUser user, @RequestParam(required = false) String keyword) {
-        return Map.of("data", posts.list(user, keyword));
+    Map<String, Object> list(@AuthenticationPrincipal SessionUser user,
+                             @RequestParam(required = false) String keyword,
+                             @RequestParam(required = false) String page) {
+        int pageNumber;
+        try {
+            pageNumber = page == null ? 1 : Integer.parseInt(page);
+        } catch (NumberFormatException error) {
+            throw ApiException.invalid("페이지는 1 이상의 정수여야 합니다.");
+        }
+        return Map.of("data", posts.list(user, keyword, pageNumber));
     }
 
     @GetMapping("/api/posts/{postId}")

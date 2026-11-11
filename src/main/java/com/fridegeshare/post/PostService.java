@@ -10,10 +10,13 @@ import com.fridegeshare.common.SessionUser;
 import com.fridegeshare.region.RegionDirectory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PostService {
+    private static final int PAGE_SIZE = 10;
+
     public record PostForm(String title, String foodName, String quantity, LocalDate expiryDate, String description) {}
     public record SavedPost(long id, String status) {}
     public record Mine(long id, String title, String status, OffsetDateTime createdAt) {}
@@ -23,6 +26,8 @@ public class PostService {
     public record Detail(
         @com.fasterxml.jackson.annotation.JsonUnwrapped Post post,
         String viewerRole, Long reservationId, Long chatRoomId) {}
+    public record PageResult(List<Post> posts, int page, int pageSize, long totalCount,
+                             long totalPages, boolean hasPrevious, boolean hasNext) {}
 
     private final PostMapper posts;
     private final RegionDirectory regions;
@@ -32,11 +37,18 @@ public class PostService {
         this.regions = regions;
     }
 
-    public List<Post> list(SessionUser user, String keyword) {
-        String search = keyword == null ? null : Inputs.text(keyword, "검색어", 1, 100);
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
+    public PageResult list(SessionUser user, String keyword, int page) {
+        if (page < 1) throw ApiException.invalid("페이지는 1 이상의 정수여야 합니다.");
+        String search = keyword == null || keyword.isBlank() ? null : Inputs.text(keyword, "검색어", 1, 100);
         var neighborhoods = regions.districtCodes(user.neighborhoodCode());
-        if (neighborhoods.isEmpty()) return List.of();
-        return posts.list(neighborhoods, search).stream().map(this::toPost).toList();
+        long totalCount = neighborhoods.isEmpty() ? 0 : posts.count(neighborhoods, search);
+        long totalPages = (totalCount + PAGE_SIZE - 1) / PAGE_SIZE;
+        long offset = ((long) page - 1) * PAGE_SIZE;
+        List<Post> result = offset >= totalCount ? List.of()
+            : posts.list(neighborhoods, search, PAGE_SIZE, offset).stream().map(this::toPost).toList();
+        return new PageResult(result, page, PAGE_SIZE, totalCount, totalPages,
+                              page > 1 && totalPages > 0, page < totalPages);
     }
 
     public List<Mine> mine(SessionUser user) {
