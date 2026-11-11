@@ -1,23 +1,30 @@
-### MySQL 초기 설정과 행정동 데이터 준비
+### MariaDB 초기 설정과 행정동 데이터 준비
 - [`compose.yaml`](../compose.yaml) Docker 컨테이너를 어떻게 실행할지 정하는 Docker Compose 설정 파일
-    - 새 Docker 볼륨으로 MySQL 최초 실행 시 MYSQL_DATABASE와 MYSQL_USER 설정에 따라 DB와 접속 계정 자동 생성
-    - schema.sql 실행을 통한 공통 테이블 5개 생성
-    ```
+    - MariaDB 11.4를 빈 볼륨에서 처음 시작하면 `MARIADB_DATABASE`와 `MARIADB_USER` 설정으로 DB와 접속 계정을 만들고 `db/schema.sql`로 테이블 5개를 생성한다.
+    - 개발용 `mariadb_data`와 테스트용 `mariadb_test_data` 볼륨을 사용한다. 기존 MySQL 컨테이너가 같은 포트를 사용 중이면 먼저 중지한다.
+    - 개발용 MariaDB는 호스트의 `3308`에 열리고 Spring Boot도 기본으로 `localhost:3308`에 연결한다. 포트를 바꾸려면 실행 전에 `DB_PORT`를 지정한다.
+    - Git Bash에서 `DB_PASSWORD`를 설정한다. `DB_USERNAME`의 기본값은 `fridegeshare`이며, 다른 값을 쓰려면 MariaDB를 처음 시작하기 전에 지정한다.
+
+    ```bash
     # Docker 명령 실행
     # 실행 전 Docker Desktop을 켜고 프로젝트 루트에 compose.yaml과 db/schema.sql이 있는 지 확인한다.
 
-    read -rsp "MySQL 비밀번호 입력: " DB_PASSWORD
+    read -rsp "MariaDB 비밀번호 입력: " DB_PASSWORD
+    printf '\n'
     export DB_PASSWORD
 
-    # 3306 포트가 이미 사용 중인 PC에서만 아래 줄 실행
-    export DB_PORT=3308
-    export DB_URL='jdbc:mysql://localhost:3308/fridegeshare?connectionTimeZone=%2B09:00&forceConnectionTimeZoneToSession=true'
-
-    # 개발용 MySQL 실행 및 준비 대기
+    # 개발용 MariaDB 실행 및 준비 대기
     docker compose -p fridegeshare up -d --wait db
 
     # 공통 테이블 5개 확인
-    docker compose -p fridegeshare exec db sh -c 'MYSQL_PWD="$MYSQL_PASSWORD" mysql -u "$MYSQL_USER" "$MYSQL_DATABASE" -e "SHOW TABLES;"'
+    docker compose -p fridegeshare exec db sh -c 'mariadb --user="$MARIADB_USER" --password="$MARIADB_PASSWORD" "$MARIADB_DATABASE" --execute="SHOW TABLES;"'
+    ```
+
+- `PostBranchTest`는 기본으로 별도 MariaDB(`localhost:3309`)에 연결한다. 접속 주소를 직접 지정하려면 `DB_URL`을 사용한다.
+
+    ```bash
+    docker compose -p fridegeshare --profile test up -d --wait db-test
+    RUN_DB_TESTS=true ./gradlew test --tests 'com.fridegeshare.post.PostBranchTest'
     ```
 ---
 - [`import-regions.py`](../scripts/import-regions.py)

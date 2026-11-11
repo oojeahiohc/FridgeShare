@@ -36,11 +36,12 @@
     ```
 6. [`build.gradle`](../build.gradle)
     - Java 17을 기준으로 빌드하고 실행형 WAR를 구성
-    - 의존성 추가: Spring Web, Spring Security, MyBatis Framework, MySQL Driver, Tomcat Jasper, JSTL API 및 구현체
+    - 의존성 추가: Spring Web, Spring Security, MyBatis Framework, MariaDB Connector/J, Tomcat Jasper, JSTL API 및 구현체
 7. .gitignore
 8. .gitattributes
 9. [`application.yml`](../src/main/resources/application.yml)
     - JSP, 데이터소스, 세션, 포트 설정
+    - DB 연결과 실행 절차는 [MariaDB 초기 설정](03-db-regions.md) 참고
 10. [`FridegeShareApplication.java`](../src/main/java/com/fridegeshare/FridegeShareApplication.java)
     - Spring Boot 실행 진입점
 ---

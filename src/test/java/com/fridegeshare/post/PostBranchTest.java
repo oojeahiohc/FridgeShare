@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(properties = "spring.datasource.url=${DB_URL:jdbc:mariadb://localhost:3309/fridegeshare}")
 @AutoConfigureMockMvc
 @Transactional
 @EnabledIfEnvironmentVariable(named = "RUN_DB_TESTS", matches = "true")

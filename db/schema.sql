@@ -32,6 +32,9 @@ CREATE TABLE IF NOT EXISTS reservations (
     post_id BIGINT NOT NULL,
     applicant_id BIGINT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'RESERVED',
+    active_post_id BIGINT GENERATED ALWAYS AS (
+        CASE WHEN status IN ('RESERVED', 'COMPLETED') THEN post_id ELSE NULL END
+    ) PERSISTENT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_reservations_post FOREIGN KEY (post_id) REFERENCES food_posts(id),
@@ -39,9 +42,7 @@ CREATE TABLE IF NOT EXISTS reservations (
     CONSTRAINT ck_reservations_status CHECK (status IN ('RESERVED', 'CANCELLED', 'COMPLETED')),
     KEY idx_reservations_post (post_id),
     KEY idx_reservations_applicant (applicant_id),
-    UNIQUE KEY uq_reservations_active_post (
-        (CASE WHEN status IN ('RESERVED', 'COMPLETED') THEN post_id ELSE NULL END)
-    )
+    UNIQUE KEY uq_reservations_active_post (active_post_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS chat_rooms (

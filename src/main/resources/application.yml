@@ -4,9 +4,12 @@ spring:
       prefix: /WEB-INF/views/
       suffix: .jsp
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/fridegeshare?connectionTimeZone=%2B09:00&forceConnectionTimeZoneToSession=true}
-    username: ${DB_USER:fridegeshare}
+    url: ${DB_URL:jdbc:mariadb://localhost:${DB_PORT:3308}/fridegeshare}
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: ${DB_USERNAME:fridegeshare}
     password: ${DB_PASSWORD:}
+    hikari:
+      connection-init-sql: "SET time_zone = '+09:00'"
   sql:
     init:
       mode: never
