@@ -34,8 +34,21 @@ class PostPageController {
     @GetMapping("/posts/{postId}")
     String detail(@AuthenticationPrincipal SessionUser user, @PathVariable long postId, Model model) {
         var detail = posts.detail(user, postId);
-        model.addAttribute("post", detail.post());
-        model.addAttribute("editable", "OWNER".equals(detail.viewerRole()) && "AVAILABLE".equals(detail.post().status()));
+        var post = detail.post();
+        boolean owner = "OWNER".equals(detail.viewerRole());
+        boolean available = "AVAILABLE".equals(post.status());
+        boolean activeReservation = "RESERVED".equals(post.status()) && detail.reservationId() != null;
+        boolean expired = available && !owner && post.expiryDate().isBefore(Inputs.today());
+
+        // 상세 조회에서 지역을 확인하고, 예약 정보는 작성자와 예약자에게만 전달한다.
+        model.addAttribute("post", post);
+        model.addAttribute("editable", owner && available);
+        model.addAttribute("claimable", !owner && available && !expired);
+        model.addAttribute("expired", expired);
+        model.addAttribute("activeReservation", activeReservation);
+        model.addAttribute("owner", owner);
+        model.addAttribute("reservationId", detail.reservationId());
+        model.addAttribute("chatRoomId", detail.chatRoomId());
         return "posts/detail";
     }
 
