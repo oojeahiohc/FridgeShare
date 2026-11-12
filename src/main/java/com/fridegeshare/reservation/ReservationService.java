@@ -21,19 +21,16 @@ public class ReservationService {
 
     private final ReservationMapper reservations;
 
-    private final RegionDirectory regions;
-
-    ReservationService(ReservationMapper reservations, RegionDirectory regions) {
+    ReservationService(ReservationMapper reservations) {
         this.reservations = reservations;
-        this.regions = regions;
     }
 
     // 조건부 선점과 예약 저장의 단일 커밋
     @Transactional
     public Created claim(SessionUser user, long postId) {
-        var neighborhoods = regions.districtCodes(user.neighborhoodCode());
+        String districtPrefix = RegionDirectory.districtPrefix(user.neighborhoodCode());
         var today = Inputs.today();
-        if (neighborhoods.isEmpty() || reservations.claim(postId, user.id(), neighborhoods, today) == 0) {
+        if (districtPrefix == null || reservations.claim(postId, user.id(), districtPrefix, today) == 0) {
             throw unavailable(reservations.lockPost(postId), user, today);
         }
         reservations.insert(postId, user.id());
@@ -87,7 +84,7 @@ public class ReservationService {
         if (post.authorId() == user.id()) {
             return new ApiException(HttpStatus.FORBIDDEN, "SELF_RESERVATION", "본인 글은 예약할 수 없습니다.");
         }
-        if (!regions.sameDistrict(post.neighborhood(), user.neighborhoodCode())) {
+        if (!RegionDirectory.sameDistrict(post.neighborhood(), user.neighborhoodCode())) {
             return new ApiException(HttpStatus.FORBIDDEN, "REGION_MISMATCH", "같은 시·도와 시·군·구의 글만 예약할 수 있습니다.");
         }
         if (post.expiryDate().isBefore(today)) {

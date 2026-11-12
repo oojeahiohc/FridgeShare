@@ -20,18 +20,13 @@ interface ReservationMapper {
 
     // 모집 상태와 신청 조건을 한 UPDATE에서 확인해 동시에 한 명만 선점한다.
     @Update("""
-        <script>
         UPDATE food_posts SET status = 'RESERVED'
         WHERE id = #{postId} AND status = 'AVAILABLE' AND deleted_at IS NULL
-          AND author_id &lt;&gt; #{applicantId} AND neighborhood IN
-          <foreach collection="neighborhoods" item="code" open="(" separator="," close=")">
-              #{code}
-          </foreach>
+          AND author_id <> #{applicantId} AND neighborhood LIKE CONCAT(#{districtPrefix}, '%')
           AND expiry_date >= #{today}
-        </script>
         """)
     int claim(@Param("postId") long postId, @Param("applicantId") long applicantId,
-              @Param("neighborhoods") List<String> neighborhoods, @Param("today") LocalDate today);
+              @Param("districtPrefix") String districtPrefix, @Param("today") LocalDate today);
 
     @Select("""
         SELECT id, author_id, neighborhood, expiry_date, status, deleted_at

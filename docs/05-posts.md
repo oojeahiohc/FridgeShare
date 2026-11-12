@@ -17,7 +17,7 @@
 GET /posts → GET /api/posts
 → PostPageController가 list.jsp를 표시하고 post-list.js가 목록, 검색을 요청
 → PostApiController가 로그인 회원, 검색어, 페이지 번호(기본값 1)를 PostService.list()에 전달
-→ PostService가 RegionDirectory에서 같은 시·도 및 시·군·구의 행정동 코드 목록을 가져옴
+→ PostService가 RegionDirectory를 통해 회원의 행정동 코드 앞 5자리를 추출해 PostMapper의 LIKE 조건에 전달
 → PostMapper가 해당 지역의 미삭제 글을 제목 또는 식재료명으로 검색하고 전체 건수와 페이지당 10건을 조회
 → post-list.js가 JSON 응답의 data.posts와 페이지 정보로 목록과 이전·다음 버튼을 갱신
 

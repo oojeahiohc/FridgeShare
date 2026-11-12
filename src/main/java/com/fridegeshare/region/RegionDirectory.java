@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.fridegeshare.common.ApiException;
 import org.springframework.core.io.ClassPathResource;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class RegionDirectory {
+    private static final Pattern NEIGHBORHOOD_CODE = Pattern.compile("[0-9]{10}");
+
     public record Region(String code, String province, String district, String town) {
         // 시·군·구가 없는 지역의 표시명 조합
         public String label() {
@@ -35,7 +38,7 @@ public class RegionDirectory {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] columns = line.split("\\t", -1);
-                if (columns.length != 4 || !columns[0].matches("[0-9]{10}")
+                if (columns.length != 4 || !NEIGHBORHOOD_CODE.matcher(columns[0]).matches()
                         || columns[1].isBlank() || columns[2].isBlank() || columns[3].isBlank()) {
                     throw new IllegalStateException("행정동 자료 형식이 올바르지 않습니다.");
                 }
@@ -61,17 +64,14 @@ public class RegionDirectory {
         return region;
     }
 
-    // 행정동 코드로 지역 정보를 찾아 시·도와 시·군·구가 모두 같은지 확인한다.
-    public boolean sameDistrict(String firstCode, String secondCode) {
-        Region first = byCode.get(firstCode);
-        Region second = byCode.get(secondCode);
-        return first != null && second != null
-                && first.province().equals(second.province())
-                && first.district().equals(second.district());
+    // 10자리 행정동 코드의 앞 5자리를 지역 판정에 사용한다.
+    public static String districtPrefix(String code) {
+        return code != null && NEIGHBORHOOD_CODE.matcher(code).matches() ? code.substring(0, 5) : null;
     }
 
-    public List<String> districtCodes(String code) {
-        return byCode.keySet().stream().filter(candidate -> sameDistrict(code, candidate)).toList();
+    public static boolean sameDistrict(String firstCode, String secondCode) {
+        String firstPrefix = districtPrefix(firstCode);
+        return firstPrefix != null && firstPrefix.equals(districtPrefix(secondCode));
     }
 
     public String label(String code) {

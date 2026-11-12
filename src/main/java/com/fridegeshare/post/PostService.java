@@ -41,12 +41,12 @@ public class PostService {
     public PageResult list(SessionUser user, String keyword, int page) {
         if (page < 1) throw ApiException.invalid("페이지는 1 이상의 정수여야 합니다.");
         String search = keyword == null || keyword.isBlank() ? null : Inputs.text(keyword, "검색어", 1, 100);
-        var neighborhoods = regions.districtCodes(user.neighborhoodCode());
-        long totalCount = neighborhoods.isEmpty() ? 0 : posts.count(neighborhoods, search);
+        String districtPrefix = RegionDirectory.districtPrefix(user.neighborhoodCode());
+        long totalCount = districtPrefix == null ? 0 : posts.count(districtPrefix, search);
         long totalPages = (totalCount + PAGE_SIZE - 1) / PAGE_SIZE;
         long offset = ((long) page - 1) * PAGE_SIZE;
         List<Post> result = offset >= totalCount ? List.of()
-            : posts.list(neighborhoods, search, PAGE_SIZE, offset).stream().map(this::toPost).toList();
+            : posts.list(districtPrefix, search, PAGE_SIZE, offset).stream().map(this::toPost).toList();
         return new PageResult(result, page, PAGE_SIZE, totalCount, totalPages,
                               page > 1 && totalPages > 0, page < totalPages);
     }
@@ -70,7 +70,7 @@ public class PostService {
     private PostMapper.PostRow requireInDistrict(SessionUser user, long id) {
         var row = require(id);
         // 조회 범위 밖의 글은 주소로 접근해도 존재 여부를 공개하지 않는다.
-        if (!regions.sameDistrict(user.neighborhoodCode(), row.neighborhoodCode())) {
+        if (!RegionDirectory.sameDistrict(user.neighborhoodCode(), row.neighborhoodCode())) {
             throw ApiException.missing();
         }
         return row;

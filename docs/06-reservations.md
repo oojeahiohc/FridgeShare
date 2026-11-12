@@ -7,7 +7,7 @@
 ```
 POST /api/posts/{postId}/reservations
 → ReservationApiController가 로그인 회원과 게시글 ID를 ReservationService.claim()에 전달
-→ ReservationService가 RegionDirectory에서 회원과 같은 시·도 및 시·군·구의 행정동 코드 목록을 가져옴
+→ ReservationService가 RegionDirectory를 통해 회원의 행정동 코드 앞 5자리를 추출해 ReservationMapper의 LIKE 조건에 전달
 → ReservationMapper가 지역, 작성자, 삭제 여부, 모집 상태, 서울 기준 소비기한을 확인하는 조건부 UPDATE로 게시글을 선점
 → 선점에 성공하면 ReservationMapper가 같은 트랜잭션에서 예약 기록을 저장
 → ReservationApiController가 예약 ID와 상태를 201 응답으로 반환

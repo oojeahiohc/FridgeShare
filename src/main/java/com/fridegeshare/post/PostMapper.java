@@ -23,28 +23,24 @@ interface PostMapper {
         p.expiry_date, p.description, p.neighborhood AS neighborhood_code, p.status, p.created_at
         """;
 
-    // 시·도와 시·군·구가 모두 같은 행정동 코드들을 조회 범위로 사용한다.
+    // 게시글 목록과 전체 건수에 같은 지역 및 검색 조건을 적용한다.
     String LIST_FILTER = """
-        WHERE p.deleted_at IS NULL AND p.neighborhood IN
-        <foreach collection="neighborhoods" item="code" open="(" separator="," close=")">
-            #{code}
-        </foreach>
-          AND (#{keyword} IS NULL OR LOCATE(#{keyword}, p.title) &gt; 0 OR LOCATE(#{keyword}, p.food_name) &gt; 0)
+        WHERE p.deleted_at IS NULL AND p.neighborhood LIKE CONCAT(#{districtPrefix}, '%')
+          AND (#{keyword} IS NULL OR LOCATE(#{keyword}, p.title) > 0 OR LOCATE(#{keyword}, p.food_name) > 0)
         """;
 
-    @Select("<script>SELECT " + POST_FIELDS + """
+    @Select("SELECT " + POST_FIELDS + """
         , NULL AS reservation_id, NULL AS applicant_id, NULL AS chat_room_id
         FROM food_posts p JOIN users u ON u.id = p.author_id
         """ + LIST_FILTER + """
         ORDER BY p.created_at DESC, p.id DESC
         LIMIT #{limit} OFFSET #{offset}
-        </script>
         """)
-    List<PostRow> list(@Param("neighborhoods") List<String> neighborhoods, @Param("keyword") String keyword,
+    List<PostRow> list(@Param("districtPrefix") String districtPrefix, @Param("keyword") String keyword,
                        @Param("limit") int limit, @Param("offset") long offset);
 
-    @Select("<script>SELECT COUNT(*) FROM food_posts p " + LIST_FILTER + "</script>")
-    long count(@Param("neighborhoods") List<String> neighborhoods, @Param("keyword") String keyword);
+    @Select("SELECT COUNT(*) FROM food_posts p " + LIST_FILTER)
+    long count(@Param("districtPrefix") String districtPrefix, @Param("keyword") String keyword);
 
     @Select("SELECT " + POST_FIELDS + """
         , r.id AS reservation_id, r.applicant_id, c.id AS chat_room_id
